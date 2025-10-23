@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🕹️ HTML File Loader - Gamer's Overdrive++</title>
+  <meta name="description" content="Load, preview, cloak, and launch HTML files in turbo mode." />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      font-family: 'Share Tech Mono', monospace;
+      margin: 0;
+      padding: 2rem;
+      background: linear-gradient(135deg, #000000, #0a0f0a, #001a10);
+      background-size: 300% 300%;
+      animation: bgshift 20s ease infinite;
+      color: #f1f1f1;
+    }
+
+    @keyframes bgshift {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    main {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+      gap: 2rem;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    fieldset {
+      border: 1px solid rgba(0, 255, 144, 0.4);
+      border-radius: 14px;
+      padding: 1.5rem;
+      background: rgba(20, 20, 20, 0.85);
+      backdrop-filter: blur(8px);
+      box-shadow: 0 0 15px rgba(0, 255, 144, 0.2);
+      transition: transform 0.25s ease, box-shadow 0.25s ease;
+    }
+
+    fieldset:hover {
+      transform: translateY(-4px) scale(1.01);
+      box-shadow: 0 0 20px rgba(0, 255, 144, 0.4);
+    }
+
+    legend {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1.3rem;
+      padding: 0 1rem;
+      color: #00ff90;
+      text-shadow: 0 0 8px #00ff90, 0 0 15px #00ff90;
+    }
+
+    label { display: block; margin: 1rem 0 0.5rem; }
+
+    select, input[type="file"], button {
+      width: 100%;
+      padding: 0.75rem;
+      border: none;
+      border-radius: 8px;
+      background-color: #1e1e1e;
+      color: #f1f1f1;
+      font-size: 1rem;
+      transition: all 0.25s ease;
+    }
+
+    select:focus, input:focus {
+      outline: 2px solid #00ff90;
+      box-shadow: 0 0 10px #00ff90;
+    }
+
+    button {
+      background: linear-gradient(135deg, #00ff90, #00cc70, #009955);
+      background-size: 300% 300%;
+      animation: glow 6s infinite linear;
+      color: #000;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    @keyframes glow {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    button:hover {
+      transform: scale(1.04);
+      box-shadow: 0 0 12px #00ff90, 0 0 20px #00ff90;
+    }
+
+    .message {
+      margin-top: 1rem;
+      font-weight: bold;
+      color: #00ff90;
+    }
+
+    .footer {
+      text-align: center;
+      margin-top: 4rem;
+      font-size: 0.85rem;
+      color: #666;
+      font-family: 'Orbitron', sans-serif;
+    }
+
+    #previewBox {
+      margin-top: 1rem;
+      height: 320px;
+      border: 2px solid #00ff90;
+      border-radius: 10px;
+      overflow: hidden;
+      background-color: #121212;
+      resize: vertical;
+    }
+
+    iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+
+    .dropzone {
+      padding: 1rem;
+      border: 2px dashed #00ff90;
+      border-radius: 10px;
+      text-align: center;
+      margin-top: 1rem;
+      transition: background-color 0.3s ease, transform 0.3s ease;
+    }
+
+    .dropzone.hover {
+      background-color: rgba(0, 255, 144, 0.15);
+      transform: scale(1.05);
+    }
+
+    #history {
+      margin-top: 1rem;
+      font-size: 0.9rem;
+      color: #aaa;
+    }
+
+    #history button {
+      margin-top: 0.5rem;
+      padding: 0.5rem;
+      font-size: 0.85rem;
+      background: #111;
+      color: #0f0;
+      border: 1px solid #0f0;
+      border-radius: 6px;
+    }
+
+    #toast {
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      background: #111;
+      border: 1px solid #00ff90;
+      color: #0f0;
+      padding: 0.75rem 1.2rem;
+      border-radius: 8px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.4s ease, transform 0.4s ease;
+    }
+
+    #toast.show {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateY(0);
+    }
+  </style>
+</head>
+<body>
+
+<main>
+  <fieldset>
+    <legend>⚙️ Customize Tab</legend>
+
+    <label for="cloakSelect">🎭 Cloak Style:</label>
+    <select id="cloakSelect">
+      <option value="light">Light</option>
+      <option value="dark" selected>Dark</option>
+      <option value="classic">Classic</option>
+    </select>
+
+    <label for="titleSelect">📝 Tab Title:</label>
+    <select id="titleSelect">
+      <option value="GD">Google Docs</option>
+      <option value="GS">Google Slides</option>
+      <option value="GSI">Google Sites</option>
+      <option value="GC">Google Classroom</option>
+    </select>
+
+    <label for="iconSelect">🖼️ Tab Icon:</label>
+    <select id="iconSelect">
+      <option value="GD">Google Docs</option>
+      <option value="GS">Google Slides</option>
+      <option value="GSI">Google Sites</option>
+      <option value="GC">Google Classroom</option>
+    </select>
+
+    <label for="openMode">🚪 Open Mode:</label>
+    <select id="openMode">
+      <option value="tab" selected>New Tab</option>
+      <option value="window">New Window</option>
+    </select>
+
+    <label><input type="checkbox" id="autoLaunch"> 🔥 Auto-launch on load</label>
+
+    <button id="saveSettings">💾 Save Settings</button>
+    <input type="file" id="loadSettings" accept=".json" />
+  </fieldset>
+
+  <fieldset>
+    <legend>📂 Load HTML File</legend>
+
+    <label for="fileInput">Choose or drop an HTML file:</label>
+    <input type="file" id="fileInput" accept=".html" />
+    <div id="dropZone" class="dropzone">🖱️ Drop HTML file here</div>
+
+    <button id="launchBtn">🚀 Launch File</button>
+    <div class="message" id="message"></div>
+
+    <div id="previewBox">
+      <iframe id="previewFrame"></iframe>
+    </div>
+
+    <div id="history"></div>
+  </fieldset>
+</main>
+
+<footer class="footer">
+  Created by <strong>AHHHH_102</strong> | Turbocharged by <strong>WANTED</strong> <br/> &copy; 2024 – 2025
+</footer>
+
+<div id="toast"></div>
+
+<script>
+  const fileInput = document.getElementById("fileInput");
+  const message = document.getElementById("message");
+  const launchBtn = document.getElementById("launchBtn");
+  const saveBtn = document.getElementById("saveSettings");
+  const loadSettingsInput = document.getElementById("loadSettings");
+  const previewFrame = document.getElementById("previewFrame");
+  const dropZone = document.getElementById("dropZone");
+  const autoLaunch = document.getElementById("autoLaunch");
+  const historyDiv = document.getElementById("history");
+  const toast = document.getElementById("toast");
+
+  const selects = {
+    cloakSelect: document.getElementById("cloakSelect"),
+    titleSelect: document.getElementById("titleSelect"),
+    iconSelect: document.getElementById("iconSelect"),
+    openMode: document.getElementById("openMode")
+  };
+
+  const titleMap = {
+    GD: "Google Docs", GS: "Google Slides",
+    GSI: "Google Sites", GC: "Google Classroom"
+  };
+
+  const iconMap = {
+    GD: "https://cdn-icons-png.flaticon.com/512/5968/5968517.png",
+    GS: "https://upload.wikimedia.org/wikipedia/commons/1/1e/Google_Slides_logo_%282014-2020%29.svg",
+    GSI: "https://upload.wikimedia.org/wikipedia/commons/1/1a/Google_Sites_2020_Logo.svg",
+    GC: "https://upload.wikimedia.org/wikipedia/commons/1/19/Google_Classroom_Logo.svg"
+  };
+
+  const themes = {
+    light: { bg: "#ffffff", text: "#000000" },
+    dark: { bg: "#121212", text: "#ffffff" },
+    classic: { bg: "#f5f5f5", text: "#333333" }
+  };
+
+  let fileContent = "";
+  let history = JSON.parse(localStorage.getItem("fileHistory") || "[]");
+
+  function showToast(msg) {
+    toast.textContent = msg;
+    toast.classList.add("show");
+    setTimeout(() => toast.classList.remove("show"), 2500);
+  }
+
+  function updateHistory(name, content) {
+    history.unshift({ name, content });
+    history = history.slice(0, 5);
+    localStorage.setItem("fileHistory", JSON.stringify(history));
+    renderHistory();
+  }
+
+  function renderHistory() {
+    historyDiv.innerHTML = "<b>📜 Recent Files:</b><br/>";
+    history.forEach((h, i) => {
+      const btn = document.createElement("button");
+      btn.textContent = h.name;
+      btn.onclick = () => {
+        fileContent = h.content;
+        previewFrame.srcdoc = fileContent;
+        showToast(`✅ Loaded from history: ${h.name}`);
+      };
+      historyDiv.appendChild(btn);
+    });
+  }
+
+  function handleFile(file) {
+    if (!file || !file.name.endsWith(".html")) {
+      showToast("❌ Invalid file type.");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      fileContent = e.target.result;
+      previewFrame.srcdoc = fileContent;
+      updateHistory(file.name, fileContent);
+      showToast("✅ HTML loaded!");
+      if (autoLaunch.checked) launchFile();
+    };
+    reader.readAsText(file);
+  }
+
+  fileInput.addEventListener("change", (e) => handleFile(e.target.files[0]));
+  dropZone.addEventListener("dragover", (e) => { e.preventDefault(); dropZone.classList.add("hover"); });
+  dropZone.addEventListener("dragleave", () => dropZone.classList.remove("hover"));
+  dropZone.addEventListener("drop", (e) => { e.preventDefault(); dropZone.classList.remove("hover"); handleFile(e.dataTransfer.files[0]); });
+
+  function launchFile() {
+    if (!fileContent) return showToast("⚠️ Select a file first.");
+    const theme = themes[selects.cloakSelect.value];
+    const html = `
+      <!DOCTYPE html><html><head>
+      <title>${titleMap[selects.titleSelect.value]}</title>
+      <style>body{margin:0;background:${theme.bg};color:${theme.text};}</style>
+      </head><body>${fileContent}</body></html>`;
+    const newWin = selects.openMode.value === "window"
+      ? window.open("", "_blank", "width=1024,height=768,resizable=yes")
+      : window.open();
+    if (!newWin) return alert("❌ Popup blocked.");
+    newWin.document.open();
+    newWin.document.write(html);
+    newWin.document.close();
+    const icon = iconMap[selects.iconSelect.value];
+    if (icon) {
+      const link = newWin.document.createElement("link");
+      link.rel = "icon"; link.href = icon;
+      newWin.document.head.appendChild(link);
+    }
+    showToast("🚀 Launched!");
+  }
+  launchBtn.addEventListener("click", launchFile);
+
+  // Save & load settings
+  saveBtn.addEventListener("click", () => {
+    const settings = {
+      cloakSelect: selects.cloakSelect.value,
+      titleSelect: selects.titleSelect.value,
+      iconSelect: selects.iconSelect.value,
+      openMode: selects.openMode.value,
+      autoLaunch: autoLaunch.checked
+    };
+    localStorage.setItem("htmlLoaderSettings", JSON.stringify(settings));
+    const blob = new Blob([JSON.stringify(settings)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = "html_loader_settings.json"; a.click();
+    URL.revokeObjectURL(url);
+    showToast("💾 Settings saved!");
+  });
+
+  loadSettingsInput.addEventListener("change", (e) => {
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const s = JSON.parse(event.target.result);
+        for (const k in s) if (selects[k]) selects[k].value = s[k];
+        autoLaunch.checked = s.autoLaunch || false;
+        showToast("✅ Settings loaded.");
+      } catch { showToast("❌ Invalid settings file."); }
+    };
+    reader.readAsText(e.target.files[0]);
+  });
+
+  // Restore settings
+  window.addEventListener("DOMContentLoaded", () => {
+    const s = JSON.parse(localStorage.getItem("htmlLoaderSettings") || "{}");
+    for (const k in s) if (selects[k]) selects[k].value = s[k];
+    autoLaunch.checked = s.autoLaunch || false;
+    renderHistory();
+  });
+
+  // Keyboard shortcuts
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") launchFile();
+    if (e.ctrlKey && e.key === "s") { e.preventDefault(); saveBtn.click(); }
+  });
+</script>
+</body>
+</html>
